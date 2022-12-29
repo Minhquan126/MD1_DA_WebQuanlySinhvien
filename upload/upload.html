@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+</head>
+<style>
+img{
+    width: auto;
+    height: 200px;
+}
+.col{
+    text-align: center;
+    width: auto;
+    height: 200px;
+}
+</style>
+<body>
+<!--<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo"></button>-->
+
+
+<div class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modal title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Modal body text goes here.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col-12" style="margin-top: 20px">
+            <div class="input-group mb-3">
+                <input id="name" type="text" class="form-control" placeholder="lesson name..."
+                       aria-label="Recipient's username" aria-describedby="basic-addon2">
+                <span class="input-group-text">Lesson Name</span>
+            </div>
+            <div class="form-floating">
+                <textarea  class="form-control" placeholder="Leave a comment here" id="price" style="height: 100px"></textarea>
+                <label>Lesson Content...</label>
+            </div>
+<!--            <div class="input-group mb-3">-->
+<!--                <input id="price" type="text" class="form-control" placeholder="price..."-->
+<!--                       aria-label="Recipient's username" aria-describedby="basic-addon2">-->
+<!--                <span class="input-group-text">Lesson content</span>-->
+<!--            </div>-->
+<!--            <progress value="0" max="100" id="uploader"></progress>-->
+            <input type="file" value="upload" accept=".jpg" id="fileButton">
+<!--            <h1>Hello GFG</h1>-->
+            <div id="imgDiv"></div>
+            <button onclick="product()" class="btn btn-success bnt-change">Create lesson</button>
+        </div>
+    </div>
+</div>
+<div class="container" >
+    <div id="drawtable" class="row">
+
+    </div>
+</div>
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Lesson Update</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="col-form-label">Lesson name update</label>
+                        <input type="text" class="form-control" id="lessonNameUpdate">
+                    </div>
+                    <div class="mb-3">
+                        <label  class="col-form-label">Lesson content update</label>
+                        <textarea class="form-control" id="lessonContentUpdate"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button data-bs-dismiss="modal" onclick="editLesson()" type="button" class="btn btn-primary">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    let idUser = parseInt(localStorage.getItem('idKey'))
+    let listProduct = JSON.parse(localStorage.getItem('listProduct'))
+    if (listProduct == null) {
+        listProduct = []
+    }
+    function product() {
+        let name = document.getElementById('name').value
+        let price = document.getElementById('price').value
+        let image = getImage()
+        let id ;
+       if (listProduct.length == 0){
+           id = 1
+       } else {
+           id = listProduct[listProduct.length - 1].id + 1
+       }
+        let newLesson = new Product(id, name, price, image, idUser)
+        listProduct.push(newLesson)
+        localStorage.removeItem('listProduct')
+        localStorage.setItem('listProduct', JSON.stringify(listProduct))
+        document.getElementById('name').value = ''
+        document.getElementById('price').value = ''
+        showlistProduct()
+    }
+
+    function showlistProduct() {
+        let createProduct = ''
+        for (let i = 0; i < listProduct.length; i++) {
+            createProduct += `
+            <div style="width: 50%;height: auto" class="col">
+            <b>${listProduct[i].name}</b><br>
+            <img src="${listProduct[i].image}"><br>
+            <pre>${listProduct[i].price}</pre>
+            <button class="btn btn-success bnt-change" onclick="showLesson(${listProduct[i].id})" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo">Edit</button>
+      <button class="btn btn-danger bnt-change" data-bs-toggle="modal" data-bs-target="#exampleModalDelete" onclick="deleteProduct(${listProduct[i].id})">Delete</button>
+
+</div>`
+        }
+        document.getElementById('drawtable').innerHTML = createProduct
+    }
+    let idUpdate = 0
+    function findIdLesson(id){
+
+        for (let i = 0; i < listProduct.length; i++) {
+            if (id == listProduct[i].id){
+                return listProduct[i]
+            }
+        }
+    }
+
+    showlistProduct()
+    function showLesson(id){
+        idUpdate = id
+        let lesson = findIdLesson(id)
+        document.getElementById('lessonNameUpdate').value = lesson.name
+       document.getElementById('lessonContentUpdate').value = lesson.price
+    }
+    function deleteProduct (id){
+        listProduct.splice((id -1),1)
+        localStorage.removeItem('listProduct')
+showlistProduct()
+    }
+    function editLesson(){
+        let updateName = document.getElementById('lessonNameUpdate').value
+        let updateContent = document.getElementById('lessonContentUpdate').value
+        // listProduct[id] = findIdLesson(idUpdate)
+        let lesson = findIdLesson(idUpdate)
+        lesson.name = updateName
+        lesson.price = updateContent
+        console.log('updateneme===================================',updateName)
+        console.log('++++++++++++++++++++++++++++++',lesson.name)
+        localStorage.setItem('listProduct',JSON.stringify(listProduct))
+        // document.getElementById('exampleModal').style.display = 'none'
+        showlistProduct()
+    }
+</script>
+<script src="../login/login.js"></script>
+<script src="upload.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+</body>
+</html>
